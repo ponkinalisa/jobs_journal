@@ -1,0 +1,35 @@
+{% extends "index.html" %}
+{% block content %}
+<h1>Works log</h1>
+{% for job in list %}
+<h3>
+    Action #{{ job[0] }}
+</h3>
+    <table class="table">
+        <tr class="table-secondary">
+            <th scope="col">Title of activite</th>
+            <th scope="col">Team leader</th>
+            <th scope="col">Duration</th>
+            <th scope="col">List of collaborators</th>
+            <th scope="col">Is finished</th>
+        </tr>
+        <tr>
+            <th scope="row" class="table-primary">
+                {{ job[1] }}
+            </th>
+            <td class="table-primary">
+                {{ job[2] }}
+            </td>
+            <td class="table-primary">
+                {{ job[3] }}
+            </td>
+            <td class="table-primary">
+                {{ job[4] }}
+            </td>
+            <td class="table-danger">
+                {{ job[5] }}
+            </td>
+        </tr>
+    </table>
+    {% endfor %}
+{% endblock %}
