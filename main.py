@@ -1,6 +1,7 @@
 from data.jobs import Jobs
 from data.users import User
 from data.login import LoginForm
+from data.registration import Registration
 from data.new_job import NewJob
 from flask import *
 from data import db_session
@@ -34,6 +35,36 @@ def login():
     if current_user.__class__.__name__ == 'User':
         return render_template('login.html', title='Авторизация', form=form, username=current_user.name)
     return render_template('login.html', title='Авторизация', form=form, username='пользователь')
+
+
+@app.route('/registration', methods=['GET', 'POST'])
+def registration():
+    form = Registration()
+    if form.validate_on_submit():
+        db_sess = db_session.create_session()
+        user = db_sess.query(User).filter(User.email == form.email.data).first()
+        if user:  # так как при добавлении в бд хэширования еще не было то для корректного тестирования его и тут нет
+            return render_template('registration.html',
+                               message="пользователь с такой почтой уже зарегистрирован", form=form)
+        user = db_sess.query(User).filter(User.address == form.address.data).first()
+        if user:  # так как при добавлении в бд хэширования еще не было то для корректного тестирования его и тут нет
+            return render_template('registration.html',
+                                   message="пользователь с такм адресом уже зарегистрирован", form=form)
+        user = User()
+        user.surname = form.surname.data
+        user.name = form.name.data
+        user.age = form.age.data
+        user.position = form.position.data
+        user.speciality = form.speciality.data
+        user.address = form.address.data
+        user.email = form.email.data
+        user.hashed_password = form.hashed_password.data
+        if form.modified_date.data:
+            user.modified_date = form.modified_date.data
+        db_sess.add(user)
+        db_sess.commit()
+        return redirect('/login')
+    return render_template('registration.html', title='Регистрация', form=form, username='пользователь')
 
 
 @app.route('/logout')

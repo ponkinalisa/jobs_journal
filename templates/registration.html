@@ -15,6 +15,9 @@
         th{
         margin: 10px;
         }
+        .main{
+        margin: 0px 30%;
+        }
     </style>
 </head>
 <body>
@@ -28,10 +31,35 @@
         </span>
     </nav>
 </header>
+<main class="main">
 <h4>И на марсе будут яблони цвести!</h4>
-    <h1>Авторизация</h1>
+    <h1>Регистрация</h1>
     <form action="" method="post">
         {{ form.hidden_tag() }}
+        <p>
+            {{ form.surname.label }}<br>
+            {{ form.surname(class="form-control", type="text") }}<br>
+        </p>
+        <p>
+            {{ form.name.label }}<br>
+            {{ form.name(class="form-control", type="text") }}<br>
+        </p>
+        <p>
+            {{ form.age.label }}<br>
+            {{ form.age(class="form-control", type="number") }}<br>
+        </p>
+        <p>
+            {{ form.position.label }}<br>
+            {{ form.position(class="form-control", type="text") }}<br>
+        </p>
+        <p>
+            {{ form.speciality.label }}<br>
+            {{ form.speciality(class="form-control", type="text") }}<br>
+        </p>
+        <p>
+            {{ form.address.label }}<br>
+            {{ form.address(class="form-control", type="text") }}<br>
+        </p>
         <p>
             {{ form.email.label }}<br>
             {{ form.email(class="form-control", type="email") }}<br>
@@ -42,16 +70,22 @@
             {% endfor %}
         </p>
         <p>
-            {{ form.password.label }}<br>
-            {{ form.password(class="form-control", type="password") }}<br>
-            {% for error in form.password.errors %}
+            {{ form.hashed_password.label }}<br>
+            {{ form.hashed_password(class="form-control", type="password") }}<br>
+            {% for error in form.hashed_password.errors %}
                 <div class="alert alert-danger" role="alert">
                     {{ error }}
                 </div>
             {% endfor %}
         </p>
-        <p>{{ form.remember_me() }} {{ form.remember_me.label }}</p>
+        <p>
+            {{ form.modified_date.label }}<br>
+            {{ form.modified_date(class="form-control", type="date") }}<br>
+        </p>
         <p>{{ form.submit(type="submit", class="btn btn-primary") }}</p>
-        <div>{{ message }}</div>
+        <div class="alert alert-danger" role="alert">
+                    {{ message }}
+        </div>
     </form>
+</main>
 </body>

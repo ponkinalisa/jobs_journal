@@ -10,5 +10,5 @@ class NewJob(FlaskForm):
     collaborators = StringField('Список id участников')
     start_date = DateField('дата начала')
     end_date = DateField('дата окончания')
-    is_finished = BooleanField('Признак завершени')
+    is_finished = BooleanField('Задача завершена')
     submit = SubmitField('Добавить работу')
