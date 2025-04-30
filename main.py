@@ -6,6 +6,7 @@ from data.new_job import NewJob
 from flask import *
 from data import db_session
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
+import datetime
 
 
 app = Flask(__name__)
@@ -26,8 +27,8 @@ def login():
     if form.validate_on_submit():
         db_sess = db_session.create_session()
         user = db_sess.query(User).filter(User.email == form.email.data).first()
-        if user and user.hashed_password == form.password.data:  # так как при добавлении в бд хэширования еще не было
-            login_user(user, remember=form.remember_me.data)  # то для корректного тестирования его и тут нет
+        if user and user.check_password(form.password.data):
+            login_user(user, remember=form.remember_me.data)
             return redirect("/")
         return render_template('login.html',
                                message="Неправильный логин или пароль",
@@ -41,34 +42,39 @@ def login():
 def registration():
     form = Registration()
     if form.validate_on_submit():
-        db_sess = db_session.create_session()
-        user = db_sess.query(User).filter(User.email == form.email.data).first()
-        if user:  # так как при добавлении в бд хэширования еще не было то для корректного тестирования его и тут нет
+        try:
+            db_sess = db_session.create_session()
+            user = db_sess.query(User).filter(User.email == form.email.data).first()
+            if user:
+                return render_template('registration.html',
+                                       message="пользователь с такой почтой уже зарегистрирован", form=form)
+            user = db_sess.query(User).filter(User.address == form.address.data).first()
+            if user:
+                return render_template('registration.html',
+                                       message="пользователь с таким адресом уже зарегистрирован", form=form)
+            user = User()
+            user.surname = form.surname.data
+            user.name = form.name.data
+            user.age = form.age.data
+            user.position = form.position.data
+            user.speciality = form.speciality.data
+            user.address = form.address.data
+            user.email = form.email.data
+            user.set_password(form.hashed_password.data)
+            if form.modified_date.data:
+                user.modified_date = form.modified_date.data
+            else:
+                user.modified_date = datetime.datetime.now
+            db_sess.add(user)
+            db_sess.commit()
+            return redirect('/login')
+        except Exception as e:
             return render_template('registration.html',
-                               message="пользователь с такой почтой уже зарегистрирован", form=form)
-        user = db_sess.query(User).filter(User.address == form.address.data).first()
-        if user:  # так как при добавлении в бд хэширования еще не было то для корректного тестирования его и тут нет
-            return render_template('registration.html',
-                                   message="пользователь с такм адресом уже зарегистрирован", form=form)
-        user = User()
-        user.surname = form.surname.data
-        user.name = form.name.data
-        user.age = form.age.data
-        user.position = form.position.data
-        user.speciality = form.speciality.data
-        user.address = form.address.data
-        user.email = form.email.data
-        user.hashed_password = form.hashed_password.data
-        if form.modified_date.data:
-            user.modified_date = form.modified_date.data
-        db_sess.add(user)
-        db_sess.commit()
-        return redirect('/login')
+                                   message=e, form=form)
     return render_template('registration.html', title='Регистрация', form=form, username='пользователь')
 
 
 @app.route('/logout')
-@login_required
 def logout():
     logout_user()
     return redirect("/")
@@ -100,14 +106,18 @@ def main():
     jobs = db_sess.query(Jobs)
     lst = []
     for job in jobs:
-        user = db_sess.query(User).filter(User.id == job.team_leader).first()
-        user_fullname = user.name + ' ' + user.surname
-        is_finished = 'Is not finished'
-        duration = job.end_date - job.start_date
-        if job.is_finished:
-            is_finished = 'Is finished'
-        lst.append([job.id, job.job, user_fullname, str(duration.total_seconds() // 3600) + ' hours', job.collaborators,
-                    is_finished])
+        try:
+            user = db_sess.query(User).filter(User.id == job.team_leader).first()
+            user_fullname = user.name + ' ' + user.surname
+            is_finished = 'Is not finished'
+            duration = job.end_date - job.start_date
+            if job.is_finished:
+                is_finished = 'Is finished'
+            lst.append(
+                [job.id, job.job, user_fullname, str(duration.total_seconds() // 3600) + ' hours', job.collaborators,
+                 is_finished])
+        except Exception:
+            break
     if current_user.__class__.__name__ == 'User':
         return render_template('jobs_list.html', list=lst, username=current_user.name)
     return render_template('jobs_list.html', title='Главная',  username='пользователь', list=lst)

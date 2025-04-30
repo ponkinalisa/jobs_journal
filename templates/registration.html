@@ -24,6 +24,9 @@
 <header>
     <nav class="navbar navbar-light bg-light">
         <a class="navbar-brand" href="#"><h1>Миссия колонизация марса</h1></a>
+        <span class="navbar-text" onclick="window.open('logout')">
+        {{ username }} House
+        </span>
         <button class="btn-primary" onclick="window.open('registration')">Register</button>
         <button class="btn-success" onclick="window.open('login')">Log in</button>
         <span class="navbar-text">
@@ -83,9 +86,11 @@
             {{ form.modified_date(class="form-control", type="date") }}<br>
         </p>
         <p>{{ form.submit(type="submit", class="btn btn-primary") }}</p>
+        {% if message %}
         <div class="alert alert-danger" role="alert">
                     {{ message }}
         </div>
+        {% endif %}
     </form>
 </main>
 </body>

@@ -13,5 +13,5 @@ class Registration(FlaskForm):
     address = StringField('Адрес', validators=[DataRequired()])
     email = StringField('Почта', validators=[DataRequired()])
     hashed_password = PasswordField('Пароль', validators=[DataRequired()])
-    modified_date = DateField('дата изменения')
+    modified_date = DateField('дата изменения', validators=[DataRequired()])
     submit = SubmitField('Зарегистрироваться')
