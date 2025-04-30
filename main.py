@@ -82,13 +82,13 @@ def logout():
     return redirect("/")
 
 
-@app.route('/edit_job', methods=['GET', 'POST'])
+@app.route('/edit_job/<id>', methods=['GET', 'POST'])
 @login_required
-def edit_job():
+def edit_job(id):
     form = EditJob()
     if form.validate_on_submit():
         db_sess = db_session.create_session()
-        jobs = db_sess.query(Jobs).filter(Jobs.id == form.id.data).first()
+        jobs = db_sess.query(Jobs).filter(Jobs.id == id).first()
         if current_user.id != jobs.team_leader and current_user.id != 1:
             return render_template('edit_job.html', title='Редактирование работы', form=form,
                                    username=current_user.name, message="Вы не можете редактировать данную работу")
@@ -134,25 +134,20 @@ def new_job():
     return render_template('new_job.html', title='Добавление работы', form=form, username='пользователь')
 
 
-@app.route('/delete_job', methods=['GET', 'POST'])
+@app.route('/delete_job/<id>', methods=['GET', 'POST'])
 @login_required
-def delete_job():
-    form = DeleteJob()
-    if form.validate_on_submit():
-        db_sess = db_session.create_session()
-        jobs = db_sess.query(Jobs).filter(Jobs.id == form.id.data).first()
-        if current_user.id != jobs.team_leader and current_user.id != 1:
-            return render_template('delete_job.html', title='Удаление работы', form=form,
-                                   username=current_user.name, message="Вы не можете удалить данную работу")
-        if jobs:
-            db_sess.delete(jobs)
-            db_sess.commit()
-        else:
-            abort(404)
-        return redirect('/')
-    if current_user.__class__.__name__ == 'User':
-        return render_template('delete_job.html', title='Удаление работы', form=form, username=current_user.name)
-    return render_template('delete_job.html', title='Удаление работы', form=form, username='пользователь')
+def delete_job(id):
+    db_sess = db_session.create_session()
+    jobs = db_sess.query(Jobs).filter(Jobs.id == id).first()
+    if current_user.id != jobs.team_leader and current_user.id != 1:
+        redirect('/')  # пользователь не обладает правами на удаление
+    if jobs:
+        db_sess.delete(jobs)
+        db_sess.commit()
+    else:
+        abort(404)
+    return redirect('/')
+
 
 
 @app.route('/')

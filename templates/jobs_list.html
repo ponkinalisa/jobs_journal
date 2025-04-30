@@ -1,6 +1,7 @@
 {% extends "index.html" %}
 {% block content %}
 <h1>Works log</h1>
+<button class="btn btn-secondary" onclick="window.open('new_job')">Добавить</button>
 {% for job in list %}
 <h3>
     Action #{{ job[0] }}
@@ -31,5 +32,7 @@
             </td>
         </tr>
     </table>
+    <button class="btn btn-warning" onclick="window.open('edit_job/{{ job[0] }}')">Редактировать</button>
+    <button class="btn btn-danger" onclick="window.open('delete_job/{{ job[0] }}')">Удалить</button>
     {% endfor %}
 {% endblock %}
