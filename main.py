@@ -2,7 +2,7 @@ from data.jobs import Jobs
 from data.users import User
 from data.login import LoginForm
 from data.registration import Registration
-from data.new_job import NewJob
+from data.new_job import NewJob, EditJob, DeleteJob
 from flask import *
 from data import db_session
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
@@ -71,6 +71,8 @@ def registration():
         except Exception as e:
             return render_template('registration.html',
                                    message=e, form=form)
+    if current_user.__class__.__name__ == 'User':
+        return render_template('registration.html', title='Регистрация', form=form, username=current_user.name)
     return render_template('registration.html', title='Регистрация', form=form, username='пользователь')
 
 
@@ -80,7 +82,38 @@ def logout():
     return redirect("/")
 
 
+@app.route('/edit_job', methods=['GET', 'POST'])
+@login_required
+def edit_job():
+    form = EditJob()
+    if form.validate_on_submit():
+        db_sess = db_session.create_session()
+        jobs = db_sess.query(Jobs).filter(Jobs.id == form.id.data).first()
+        if current_user.id != jobs.team_leader and current_user.id != 1:
+            return render_template('edit_job.html', title='Редактирование работы', form=form,
+                                   username=current_user.name, message="Вы не можете редактировать данную работу")
+        jobs.team_leader = form.team_leader.data
+        if form.job.data:
+            jobs.job = form.job.data
+        if form.work_size.data:
+            jobs.work_size = form.work_size.data
+        if form.collaborators.data:
+            jobs.collaborators = form.collaborators.data
+        if form.start_date.data:
+            jobs.start_date = form.start_date.data
+        if form.end_date.data:
+            jobs.end_date = form.end_date.data
+        jobs.is_finished = form.is_finished.data
+        db_sess.add(jobs)
+        db_sess.commit()
+        return redirect('/')
+    if current_user.__class__.__name__ == 'User':
+        return render_template('edit_job.html', title='Редактирование работы', form=form, username=current_user.name)
+    return render_template('edit_job.html', title='Редактирование работы', form=form, username='пользователь')
+
+
 @app.route('/new_job', methods=['GET', 'POST'])
+@login_required
 def new_job():
     form = NewJob()
     if form.validate_on_submit():
@@ -96,7 +129,30 @@ def new_job():
         db_sess.add(jobs)
         db_sess.commit()
         return redirect('/')
+    if current_user.__class__.__name__ == 'User':
+        return render_template('new_job.html', title='Добавление работы', form=form, username=current_user.name)
     return render_template('new_job.html', title='Добавление работы', form=form, username='пользователь')
+
+
+@app.route('/delete_job', methods=['GET', 'POST'])
+@login_required
+def delete_job():
+    form = DeleteJob()
+    if form.validate_on_submit():
+        db_sess = db_session.create_session()
+        jobs = db_sess.query(Jobs).filter(Jobs.id == form.id.data).first()
+        if current_user.id != jobs.team_leader and current_user.id != 1:
+            return render_template('delete_job.html', title='Удаление работы', form=form,
+                                   username=current_user.name, message="Вы не можете удалить данную работу")
+        if jobs:
+            db_sess.delete(jobs)
+            db_sess.commit()
+        else:
+            abort(404)
+        return redirect('/')
+    if current_user.__class__.__name__ == 'User':
+        return render_template('delete_job.html', title='Удаление работы', form=form, username=current_user.name)
+    return render_template('delete_job.html', title='Удаление работы', form=form, username='пользователь')
 
 
 @app.route('/')
